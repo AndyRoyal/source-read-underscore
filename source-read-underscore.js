@@ -5,6 +5,7 @@
  * [原子函数封装]
  * [合理粒度]
  * [容错处理]
+ * [输入-->输出]
  * [?? 代表问题]
  */
 var _=(function(){
@@ -543,8 +544,144 @@ var _=(function(){
 	 };
 	 noop(111);
 
+
+
+
+
+
+//************对象函数Object Functions***********//
+
+/**
+ * 对象是否包含给定的键吗？等同于object.hasOwnProperty(key)，
+ * 但是使用hasOwnProperty 函数的一个安全引用，以防意外覆盖
+ * @param  {}
+ * @param  key
+ * @return Boolean
+ */
+var has = function(o,key){
+	return o.hasOwnProperty(key)
+};
+has({a: 1, b: 2, c: 3}, "b");
+
+/**
+ * 和_.property相反。需要一个对象，并返回一个函数,这个函数将返回一个提供的属性的值。
+ * @param  {}
+ * @param  key
+ * @return Boolean
+ */
+var propertyOf = function(o){
+	return function(key){
+		return o[key]
+	}
+};
+//var stooge = {name: 'moe'};
+//propertyOf(stooge)('name');
+//'moe'
+
+
+
+/**
+ * 如果object是一个DOM元素，返回true。
+ * @param  {}
+ * @return Boolean
+ */
+var isElement = function(o){
+	return function(){
+		return 
+	}
+};
+//isElement(jQuery('body')[0]);//true
+
+
+/**
+ * @param  {}
+ * @return Boolean
+ */
+var isArray = function(o){
+	return Object.prototype.toString.call(o) == '[object Array]';
+};
+isArray([1,2,3]);
+
+/**
+ * @param  {}
+ * @return Boolean
+ */
+var isObject = function(o){
+	return Object.prototype.toString.call(o) == '[object Object]';
+};
+isObject({});
+
+/**
+ * @param  {}
+ * @return Boolean
+ */
+/*var isArguments = function(o){
+	return Object.prototype.toString.call(o) == '[object Object]';
+};
+isArguments([]);*/
+
+
+/**
+ * @param  {}
+ * @return Boolean
+ */
+var isFunction = function(o){
+	return Object.prototype.toString.call(o) == '[object Function]';
+};
+isFunction(function(){});
+
+/**
+ * @param  {}
+ * @return Boolean
+ */
+var isString = function(o){
+	return Object.prototype.toString.call(o) == '[object String]';
+};
+isString('');
+
+
+/**
+ * @param  {}
+ * @return Boolean
+ */
+var isNumber = function(o){
+	return Object.prototype.toString.call(o) == '[object Number]';
+};
+isNumber(123);
+
+/**不带隐士转换
+ * @param  {}
+ * @return Boolean
+ */
+var isBoolean = function(o){
+	return Object.prototype.toString.call(o) == '[object Boolean]';
+};
+isBoolean(false);
+
+
+/**
+ * @param  {}
+ * @return Boolean
+ */
+var isNull = function(o){
+	return Object.prototype.toString.call(o) == '[object Null]';
+};
+isNull(null);
+
+/**
+ * @param  {}
+ * @return Boolean
+ */
+var isUndefined = function(o){
+	return Object.prototype.toString.call(o) == '[object Undefined]';
+};
+isUndefined(undefined);
+
+
+
+
 	return {
-		each:each
+		 each:each
 		,map:map
 		,reduce:reduce
 		,reduceRight:reduceRight
@@ -572,6 +709,25 @@ var _=(function(){
 		,without:without
 		,union:union
 		,noop:noop
+		,has:has
+		,propertyOf:propertyOf
+		,isEmpty:isEmpty
+		,isElement:isElement
+		,isArray:isArray
+		,isObject:isObject
+		,isArguments:isArguments
+		,isFunction:isFunction
+		,isString:isString
+		,isNumber:isNumber
+		,isFinite:isFinite
+		,isBoolean:isBoolean
+		,isDate:isDate
+		,isRegExp:isRegExp
+		,isError:isError
+		,isNaN:isNaN
+		,isNull:isNull
+		,isUndefined:isUndefined
+
 	};
 })(); 
 
