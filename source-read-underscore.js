@@ -10,6 +10,19 @@
  */
 var _=(function(){
 	//辅助函数
+	var type = (function () {
+	    var r = {},
+	        types = ['Arguments', 'Function', 'String', 'Number', 'Date', 'RegExp', 'Error', 'Null', 'Array','Object'];
+	    for (var i = 0, t; t = types[i++];) {
+	        ! function (t) {
+	            r['is' + t] = function (obj) {
+	                return Object.prototype.toString.call(obj) === '[object ' + t + ']';
+	            }
+	        }(t)
+	    }
+	    return r;
+	})();
+	
 	var isArray = function (x){
 		return Object.prototype.toString.call(x) === '[object Array]';
 	};
@@ -656,7 +669,7 @@ isNumber(123);
 var isBoolean = function(o){
 	return Object.prototype.toString.call(o) == '[object Boolean]';
 };
-isBoolean(false);
+isBoolean(false);AAy
 
 
 /**
@@ -730,5 +743,4 @@ isUndefined(undefined);
 
 	};
 })(); 
-
 
