@@ -1,5 +1,257 @@
 //underscore  2017-7-11  
 
+//************集与函数有关的函数***********//
+/**
+ * [绑定函数 function 到对象 object 上, 也就是无论何时调用函数,
+ *  函数里的 this 都指向这个 object]
+ * @param  ()  function 
+ * @param  {}  object
+ * @param  arguments  [任意可选参数 arguments 可以传递给函数 function]
+ * @return * 任意类型  
+ */
+var _={};
+_.bind=function(fn,o,args){
+	var argArr = Array.prototype.slice.call(arguments,0);
+	return function(){
+		console.log("o:"+o.name);
+		console.log("argArr.slice(2)"+argArr.slice(2));
+		return fn.apply(o,argArr.slice(2));
+	};
+};
+var func = function(greeting){ return greeting + ': ' + this.name };
+func =_.bind(func, {name: 'moe'}, 'hi',123);//'hi: moe'
+func();
+//var fn = function(greeting){ return greeting }; fn.apply(null,[1]);
+
+
+
+
+/**
+ * [把methodNames参数指定的一些方法绑定到object上，这些方法就会在对象的上下文环境中执行
+ * 绑定函数用作事件处理函数时非常便利，否则函数被调用时this一点用也没有]
+ * @param  {}  object 
+ * @param  {}  methodNames
+ * @return * 任意类型  
+ */
+_.bindAll=function(o,args){
+	var argArr1 = Array.prototype.slice.call(arguments,1);//functions
+	return function(){
+		return fn.apply(o,argArr.slice(2));
+	};
+	// 循环并将所有的函数上下本设置为obj对象本身
+	_.each(argArr1, function(i) {
+		console.log(i);
+		console.info(o);
+	    o[i] = _.bind(o[i], o);
+	});
+	return o;
+};
+
+var buttonView = {
+  label  : 'underscore',
+  onClick: function(){ alert('clicked: ' + this.label); },
+  onHover: function(){ console.log('hovering: ' + this.label); }
+};
+_.bindAll(buttonView, 'onClick', 'onHover');
+jQuery("#bindAll").css("background","pink").bind('click', buttonView.onClick);
+//bind('click',function(event){event.stopPropagation();event.preventDefault(); alert(1)});
+
+
+
+
+
+
+/**
+ * [局部应用一个函数填充在任意个数的 arguments，不改变其动态this值。和bind方法很相近。
+ * 你可以传递_ 给arguments列表来指定一个不预先填充，但在调用时提供的参数。]
+ * @param  ()  function 
+ * @param  arguments  [任意可选参数 arguments 可以传递给函数 function]
+ * @return * 任意类型  
+ */
+//1>splice,直接修改原数组参数
+//2>把字符串参数eval
+var _={};
+_.partial = function(fn,args){
+	//var replaceArg;
+	var argArr = Array.prototype.slice.call(arguments,0);
+	return function(lastArg){
+		//replaceArg =lastArg;
+		for(var i=0;i<argArr.length;i++){
+			if(argArr[i] ==='___'){
+				var delArrEle = argArr.splice(i,1,lastArg);
+				//argArr.join(",").replace('___',lastArg).split(',');//return外的话，最后一个还没有传入
+				//这样转参数成为字符串["function (a, b) { return b - a; }",5,20]
+			}
+		}
+		console.log(argArr+"  > " +delArrEle);
+		return fn.apply(null,argArr.slice(1));
+	};
+};
+var subtract = function(a, b) { return b - a; };
+// Using a placeholder
+var ___ = (function(){
+	return '___';
+})()
+subFrom20 = _.partial(subtract, 10, 20);
+subFrom20(5);
+//=> 15
+
+sub5 = _.partial(subtract, 5);
+sub5(20);
+
+//tips  splice(i,n,newadd,...)
+var r =[1,2,3];
+var r1 = r.splice(r[1],1,100);
+r;//[1, 100, 3];//原数组直接被修改
+r1;//[2],返回值是删除的元素
+//__________________
+
+
+
+/**
+ * [Memoizes方法可以缓存某函数的计算结果。对于耗时较长的计算是很有帮助的]
+ * @param  ()  function 
+ * @param  [hashFunction]  [可选]
+ * 如果传递了 hashFunction 参数，就用 hashFunction 的返回值作为key存储函数的计算结果。
+ * hashFunction 默认使用function的第一个参数作为key。
+ * @return  number  
+ */
+var _={};
+_.memoize = function(fn) {
+  var  cache = {};
+  return function(n) {
+    if (!cache[n])
+       cache[n] = fn.apply(undefined, arguments);
+   	   return cache[n]
+  }
+}
+//取参数函数的参数
+var  fibonacci = memoize(function(n) {
+  return n < 2 ? n : fibonacci(n - 2) + fibonacci(n - 1);
+});
+
+fibonacci(6);
+
+/**
+ * [类似setTimeout，等待wait毫秒后调用function。如果传递可选的参数arguments，
+ * 当函数function执行时， arguments 会作为参数传入。]
+ * @param  ()  function 
+ * @param  time  number 
+ * @param  [*arguments]
+ * @return  * 任意类型  
+ */
+//注意setTimeout的返回值 唯一标识
+var _={};
+_.delay = function(fn,wait,args){
+	var argArr = Array.prototype.slice.call(arguments,2);//args
+	return (function(argArr){
+		setTimeout(fn.apply(null,argArr),wait);	
+	})()
+};
+var log = function(){console.info(1)};
+_.delay(log, 100000, 'logged later');
+
+/**
+ * [延迟调用function直到当前调用栈清空为止，类似使用延时为0的setTimeout方法]
+ * @param  ()  function 
+ * @param  [*arguments]
+ * @return  * 任意类型  
+ */
+ var _={};
+ _.delay = function(fn,args){
+ 	var argArr = Array.prototype.slice.call(arguments,1);//args
+ 	return (function(argArr){
+ 		var func = fn.apply(null,argArr);
+ 		setTimeout(func,0);	
+ 	})()
+ };
+_.delay(function(){ alert('deferred'); });
+
+/**
+ * [创建并返回一个像节流阀一样的函数，当重复调用函数的时候，
+ * 至少每隔 wait毫秒调用一次该函数。对于想控制一些触发频率较高的事件有帮助。]
+ * @param  ()  function 
+ * @param  time  number 
+ * @param  {}object  [options] 
+ * @return  * 任意类型  
+ */
+
+
+var _={};
+_.throttle = function(fn,wait,options){
+	var timer=null;
+	return function(){
+		clearTimeout(timer);
+		timer = setTimeout(function(){
+			fn();
+		},wait)
+	}
+};
+
+var num = 0;
+function testFn() { console.log(num++); }
+window.onresize = throttle(testFn, 200, 1000);
+
+/**
+ * [返回 function 函数的防反跳版本, 将延迟函数的执行(真正的执行)在函数最后一次调用时刻的 wait 毫秒之后. 
+ * 对于必须在一些输入（多是一些用户操作）停止到达之后执行的行为有帮助]
+ * @param  ()  function 
+ * @param  time  number 
+ * @param  {}object  [options] 
+ * @return  * 任意类型  
+ */
+ var _={};
+ _.debounce = function(){
+
+ };
+
+
+ /**
+  * [创建一个只能调用一次的函数。重复调用改进的方法也没有效果，
+  * 只会返回第一次执行时的结果。 作为初始化函数使用时非常有用, 不用再设一个boolean值来检查是否已经初始化完成.]
+  * @param  ()  function 
+  * @param  time  number 
+  * @param  {}object  [options] 
+  * @return  * 任意类型  
+  */
+var _={};
+_.once = function(fn){
+	var flag = true;
+	if(flag){
+		fn();
+		flag = false;
+	}else{
+		throw new TypeError("Application is only created once");
+	}
+
+};
+
+function a(){
+	console.info("aa");
+};
+_.once(a);
+
+/**
+ * [创建一个函数, 只有在运行了 count 次之后才有效果. 在处理同组异步请求返回结果时, 
+ * 如果你要确保同组里所有异步请求完成之后才 执行这个函数, 这将非常有用]
+ * @param  number
+ * @param  ()  function 
+ * @return  * 任意类型  
+ */
+ var _={};
+ _.after = function(count,fn){
+ 	var num=0;num++;
+ 	if(num ===count ){
+ 		fn.apply(null,[])
+ 	}
+
+ };
+
+ function a(){
+ 	console.info("aa");
+ };
+ _.after(2,a);
+
 /**
  * [规则]
  * [原子函数封装]
@@ -8,11 +260,12 @@
  * [输入-->输出]
  * [?? 代表问题]
  */
-var _=(function(){
+var __=(function(){
 	//辅助函数
 	var type = (function () {
 	    var r = {},
-	        types = ['Arguments', 'Function', 'String', 'Number', 'Date', 'RegExp', 'Error', 'Null', 'Array','Object'];
+	        types = ['Arguments', 'Function', 'String', 'Number', 'Date', 
+	        'RegExp', 'Error', 'Null', 'Array','Object'];
 	    for (var i = 0, t; t = types[i++];) {
 	        ! function (t) {
 	            r['is' + t] = function (obj) {
@@ -22,7 +275,7 @@ var _=(function(){
 	    }
 	    return r;
 	})();
-	
+
 	var isArray = function (x){
 		return Object.prototype.toString.call(x) === '[object Array]';
 	};
