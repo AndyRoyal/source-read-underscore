@@ -1,6 +1,6 @@
 //underscore  2017-7-11  
 
-//************集与函数有关的函数***********//
+//************与函数有关的函数 start ***********//
 /**
  * [绑定函数 function 到对象 object 上, 也就是无论何时调用函数,
  *  函数里的 this 都指向这个 object]
@@ -10,21 +10,34 @@
  * @return * 任意类型  
  */
 var _={};
-_.bind=function(fn,o,args){
-	var argArr = Array.prototype.slice.call(arguments,0);
-	return function(){
-		console.log("o:"+o.name);
-		console.log("argArr.slice(2)"+argArr.slice(2));
-		return fn.apply(o,argArr.slice(2));
+_.bind=function(fn,o,args){//形参若截取参数可不传
+	var argArr = Array.prototype.slice.call(arguments,2);//转数组调slice
+	return function(args2){//参数个数不限，JS可传参数经测试可以大于30个，上限不确定
+		var argArr2 = Array.prototype.slice.call(arguments);
+		return fn.apply(o,argArr.concat(argArr2));
 	};
 };
-var func = function(greeting){ return greeting + ': ' + this.name };
-func =_.bind(func, {name: 'moe'}, 'hi',123);//'hi: moe'
-func();
+var func = function(greeting,pram2,pram3){ 
+	return greeting + ': ' + this.name+"fn后面的参数"+pram2+"fn内部函数的参数也就是后传的参数"+pram3; 
+};
+func =_.bind(func, {name: 'moe'}, 'hi',"pram222");//'hi: moe'
+func("pram333");
 //var fn = function(greeting){ return greeting }; fn.apply(null,[1]);
 
-
-
+//bind 功能 类似call
+var _={};
+_.call = function(fn,o,args){
+	var argArr = Array.prototype.slice.apply(arguments,[2]);
+	return function(args2){
+		var argArr2 = Array.prototype.slice.apply(arguments);
+		return fn.apply(o,argArr.concat(argArr2));
+	};
+};
+var func = function(greeting,pram2,pram3){ 
+	return greeting + ': ' + this.name+"fn后面的参数"+pram2+"fn内部函数的参数也就是后传的参数"+pram3; 
+};
+func =_.call(func, {name: 'moe'}, 'hi',"pram222");//'hi: moe'
+func("pram333");
 
 /**
  * [把methodNames参数指定的一些方法绑定到object上，这些方法就会在对象的上下文环境中执行
@@ -33,27 +46,39 @@ func();
  * @param  {}  methodNames
  * @return * 任意类型  
  */
+var _={};
 _.bindAll=function(o,args){
 	var argArr1 = Array.prototype.slice.call(arguments,1);//functions
-	return function(){
-		return fn.apply(o,argArr.slice(2));
-	};
 	// 循环并将所有的函数上下本设置为obj对象本身
-	_.each(argArr1, function(i) {
-		console.log(i);
-		console.info(o);
-	    o[i] = _.bind(o[i], o);
+	_.each(argArr1, function(value,i,list) {
+		//fn.apply(o,argArr.slice(2));
+	    o[argArr1[i]] = _.bind(o[argArr1[i]], o);//方法重写，只为改变上下文
 	});
 	return o;
 };
-
+//方式2：装饰器模式，方法覆盖
+/*_.bindAll = function(object) {
+    var fns = [].slice.call(arguments, 1);
+    for (var i = 0; i < fns.length; i++) {
+        object[fns[i]] = _.bind(object[fns[i]], object);
+    }
+};*/
 var buttonView = {
   label  : 'underscore',
-  onClick: function(){ alert('clicked: ' + this.label); },
+  getData:function(){
+  	jhjkk
+  	return {};
+  }
+
+  onClick: function(){ alert('clicked: ' + this.getData); },
   onHover: function(){ console.log('hovering: ' + this.label); }
 };
+
 _.bindAll(buttonView, 'onClick', 'onHover');
-jQuery("#bindAll").css("background","pink").bind('click', buttonView.onClick);
+jQuery('#underscore_button').bind('click', buttonView.onClick);
+//解决此问题/*jQuery("#bindAll").css("background","pink").on('click', function(){
+//	console.log(this);
+//}.bind(buttonView));
 //bind('click',function(event){event.stopPropagation();event.preventDefault(); alert(1)});
 
 
@@ -251,6 +276,9 @@ _.once(a);
  	console.info("aa");
  };
  _.after(2,a);
+
+//************与函数有关的函数 end ***********//
+//************集合函数 (数组 或对象) ***********//
 
 /**
  * [规则]
@@ -816,6 +844,227 @@ var __=(function(){
 
 
 //************对象函数Object Functions***********//
+/**
+ * 检索object拥有的所有可枚举属性的名称
+ * @param  {}
+ * @return []
+ */
+var keys = function(o){
+	var r=[];
+	for(var key in o){
+		r.push(key);
+	}
+	return r;
+};
+keys({one: 1, two: 2, three: 3});
+//["one", "two", "three"]
+
+/**
+ * 检索object拥有的和继承的所有属性的名称
+ * @param  {}
+ * @return []
+ */
+
+var allKeys = function(o){
+	var r=[];
+	for(var key in o){
+		r.push(key);
+	}
+	return r;
+};
+
+function Stooge(name) {
+  this.name = name;
+}
+Stooge.prototype.silly = true;
+allKeys(new Stooge("Moe"));
+//["name", "silly"]
+
+/**
+ * 返回object对象所有的属性值。
+ * @param  {}
+ * @return []
+ */
+var values = function(o){
+	var r= [];
+	for(var key in o){
+		r.push(o[key])
+	}
+	return r;
+};
+
+values({one: 1, two: 2, three: 3});
+//[1, 2, 3]
+
+/**
+ * 它类似于map，但是这用于对象。转换每个属性的值。
+ * @param  {}
+ * @param  fn
+ * @param  context  可选
+ * @return []
+ */
+var mapObject = function(o,fn,context){
+	for(var key in o){
+		console.info(o[key]);
+		o[key] = fn.call(undefined ||context,o[key]);//key本身就是字符串
+	}
+	return o;
+};
+mapObject({start: 5, end: 12}, function(val, key) {
+  return val + 5;
+});
+//{start: 10, end: 17}
+
+/**
+ * 把一个对象转变为一个[key, value]形式的数组
+ * @param  {}
+ * @return []
+ */
+
+var pairs = function(o){
+	var r=[];
+	for(var key in o){
+		r.push([key,o[key]]);
+	}
+	return r;
+};
+
+pairs({one: 1, two: 2, three: 3});
+//[["one", 1], ["two", 2], ["three", 3]]
+
+
+/**
+ * 返回一个object副本，使其键（keys）和值（values）对换。
+ * 对于这个操作，必须确保object里所有的值都是唯一的且可以序列号成字符串.
+ * @param  {}
+ * @return []
+ */
+
+var invert = function(o){//判断唯一只能通过索引
+	var ro = {};
+	//var rKeys = [];//如果r中已经有了这个key就不往ro中放
+	//var rValues = [];//
+	for(var key in o){
+		//if(!rKeys[key] && !rValues){
+			//r.push(key);
+			ro[o[key]] = key;
+		//}	
+	};
+	return ro;
+};
+invert({Moe: "Moses", Larry: "Louis", Curly: "Jerome"});
+//{Moses: "Moe", Louis: "Larry", Jerome: "Curly"};
+
+/**
+ * 创建具有给定原型的新对象， 可选附加props 作为 own的属性
+ * 基本上，和Object.create一样， 但是没有所有的属性描述符。
+ * @param  prototype
+ * @param  props
+ * @return []
+ */
+var create = function(prototype,props){
+	var o={};
+	o.prototype = prototype;
+	for(var key in props){
+		o[key] = props[key];
+	}
+	return o;
+};
+function Stooge(name) {
+  this.name = name;
+}
+var moe = create(Stooge.prototype, {name: "Moe"});
+
+
+/**
+ * 返回一个对象里所有的方法名, 而且是已经排序的 — 也就是说, 
+ * 对象里每个方法(属性值是一个函数)的名称
+ * @param  {}
+ * @return []
+ */
+
+var functions = function(o){
+	var r = [];
+	for(var key in o){
+		if(){//判断是方法
+			r.push(key);
+		}	
+	}
+	return r.sort();
+};
+functions(_);//133个多2属性
+//["all", "any", "bind", "bindAll", "clone", "compact", "compose" ...
+
+/**
+ * 通过迭代器fn条件的或者是undefined的，都返回
+ * @param  {}
+ * @param  fn
+ * @param  context  可选
+ * @return []
+ */
+
+var findKey = function(o,fn,context){
+	var r = [];
+	for(var key in o){
+		if(fn.call(null||context,key) || o[key] === undefined){//指的是value undefined
+			r.push(key);
+		}
+	};
+	return r;
+
+};
+var o={abc:1,defg:2,cabde:3,ccc:undefined};//
+function fn(prop){
+	if(prop.length > 3)return true
+};
+findKey(o,fn);
+//["defg", "cabde","ccc"]
+
+/**
+ * 复制source对象中的所有属性覆盖到destination对象上，并且返回 destination 对象. 
+ * 复制是按顺序的, 所以后面的对象属性会把前面的对象属性覆盖掉(如果有重复).
+ * @param  {}  destination
+ * @param  {}  sources
+ * @return {}
+ */
+var extend = function(destination,sources){
+	for(var key in sources){
+		destination[key] = sources[key];
+	}
+	return destination;
+};
+
+extend({name: 'moe'}, {age: 50});
+//{name: 'moe', age: 50}
+
+
+
+/**
+ * 类似于 extend, 但只复制自己的属性覆盖到目标对象
+ * @param  {}  destination
+ * @param  {}  sources
+ * @return {}
+ */
+var extendOwn = function(destination,sources){
+	for(var key in sources){
+		if(!sources.hasOwnProperty(key)){
+			destination[key] = sources[key];
+		}
+	}
+	return destination;
+};
+var o = {age: 50};
+o.prototype."a"=1;
+extendOwn({name: 'moe'},o);
+//{name: 'moe', age: 50}
+
+
+
+
+
+
+
+
 
 /**
  * 对象是否包含给定的键吗？等同于object.hasOwnProperty(key)，
@@ -944,7 +1193,15 @@ var isUndefined = function(o){
 isUndefined(undefined);
 
 
-
+var _slice = function(list,start,end){
+  var r = [];
+  start = start || 0;
+  end = end || list.length; 
+  for(var i = start; i < end; i++){
+	r.push(list[i]);
+  }
+  return r;
+};
 
 	return {
 		 each:each
@@ -993,6 +1250,7 @@ isUndefined(undefined);
 		,isNaN:isNaN
 		,isNull:isNull
 		,isUndefined:isUndefined
+		,_slice:_slice
 
 	};
 })(); 
