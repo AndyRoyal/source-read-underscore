@@ -194,7 +194,8 @@ _.delay(function(){ alert('deferred'); });
 
 /**
  * [创建并返回一个像节流阀一样的函数，当重复调用函数的时候，
- * 至少每隔 wait毫秒调用一次该函数。对于想控制一些触发频率较高的事件有帮助。]
+ * 至少每隔 wait毫秒调用一次该函数。对于想控制一些触发频率较高的事件有帮助。
+ * 如果你想禁用第一次首先执行的话，传递{leading: false}，还有如果你想禁用最后一次执行的话，传递{trailing: false}]
  * @param  ()  function 
  * @param  time  number 
  * @param  {}object  [options] 
@@ -204,6 +205,60 @@ _.delay(function(){ alert('deferred'); });
 
 var _={};
 _.throttle = function(fn,wait,options){
+	var forbiddenFirst = false;//禁用第一次和最后一次暂不提供
+	var forbiddenLast = false;
+	var last=0;
+	return function(){
+ 		var curr = +new Date();
+ 		if(curr-last>wait){//当前时间-上一次的时间 =  间隔时间
+ 			fn.apply(this,arguments);
+ 			last = curr;
+ 		}
+ 	};
+};
+.click(function(){
+
+})
+var num = 0;
+function testFn() { console.log(num++); }
+_.throttle(testFn, 2000)();
+window.onresize = _.throttle(testFn, 2000)();
+
+/**
+ * [返回 function 函数的防反跳版本, 将延迟函数的执行(真正的执行)在函数最后一次调用时刻的 wait 毫秒之后. 
+ * 对于必须在一些输入（多是一些用户操作）停止到达之后执行的行为有帮助,传参 immediate 为 true，
+ *  debounce会在 wait 时间间隔的开始调用这个函数 。]
+ * @param  ()  function 
+ * @param  time  number 
+ * @param  {}object  [options] 
+ * @return  * 任意类型  
+ */
+ var _={};
+ _.debounce = function(fn,wait,immediate){
+ 	var timer= null;
+ 	if(immediate){
+ 		fn.apply(null,arguments);
+ 	}
+ 	return function(){
+ 		var that  = this;
+ 		args = arguments;
+ 		clearTimeout(last);
+ 		last = setTimeout(function(){
+ 			fn.apply(that,args);
+ 		},wait)
+ 	};
+
+ };
+
+var testfn = function(){
+	console.info("testfn");
+};
+_.debounce(testfn,1000,false)();
+
+
+//简版 不支持返回函数参数的传递
+var _={};
+_.debounce = function(fn,wait,immediate){
 	var timer=null;
 	return function(){
 		clearTimeout(timer);
@@ -212,25 +267,10 @@ _.throttle = function(fn,wait,options){
 		},wait)
 	}
 };
-
-var num = 0;
-function testFn() { console.log(num++); }
-window.onresize = throttle(testFn, 200, 1000);
-
-/**
- * [返回 function 函数的防反跳版本, 将延迟函数的执行(真正的执行)在函数最后一次调用时刻的 wait 毫秒之后. 
- * 对于必须在一些输入（多是一些用户操作）停止到达之后执行的行为有帮助]
- * @param  ()  function 
- * @param  time  number 
- * @param  {}object  [options] 
- * @return  * 任意类型  
- */
- var _={};
- _.debounce = function(){
-
- };
-
-
+var testfn = function(){
+	console.info("testfn");
+};
+_.debounce(testfn,4000,false)();
  /**
   * [创建一个只能调用一次的函数。重复调用改进的方法也没有效果，
   * 只会返回第一次执行时的结果。 作为初始化函数使用时非常有用, 不用再设一个boolean值来检查是否已经初始化完成.]
@@ -304,6 +344,31 @@ var __=(function(){
 	    return r;
 	})();
 
+	//转成数组的通用函数
+	var toArray  = function(s){
+		try{
+			return Array.prototype.slice.call(s);
+		}catch(e){
+			var r = [];
+			for(var i=0;i<s.length;i++){
+				r[i] = s[i];
+			}
+			return r;
+		}
+	};
+	//slice for(var i=start;i<end;i++)
+	var _slice = function(list,start,end){
+		var r = [];
+		start = start || 0;
+		end = end || list.length;
+		for(var i = start;i<end;i++){
+			r.push(list[i]);
+		};
+		return r;
+	};
+	_slice([0,1,2,3,4,5,6,7],2,5);//[2,3,4]
+	
+
 	var isArray = function (x){
 		return Object.prototype.toString.call(x) === '[object Array]';
 	};
@@ -351,20 +416,21 @@ var __=(function(){
 	 	var r = [];
 	 	if(isArray(list)){
 	 		for(var i=0;i<list.length;i++){
-	 			r.push(fn.call(context || null,list[i]));
+	 			r.push(fn.call(context || null,i,list[i]));//map使用时，方便回调函数使用key,value, 参数i非必传
 	 			//fn(list[i]);
 	 		};
 	 	}else if(isObject(list)){
 	 		for(prop in list){
-	 			r.push(fn.call(context || null,list[prop]));
+	 			r.push(fn.call(context || null,i,list[prop]));
 	 		};
 	 	}else{
 	 		return 
 	 	}	
 	 	return r;
 	 }; 
-	 //_.map([1,2,3],function(a){return a*20});
-	 //_.map({x:1,y:2,z:3},function(a){return a*20});
+	 //map([[5, 1, 7], [3, 2, 1]], sort);map实现不了这个 Invoke可以 
+	 map([3,4,5],function(key,value){return value*20});//合理使用传入函数的参数
+	 map({x:1,y:2,z:3},function(key,value){return key*20});
 
 
 	 /**
@@ -587,10 +653,87 @@ var __=(function(){
 	  * @return  []           
 	  */
 	  var invoke = function(list,fn){
-	  	 return 
+	  	 return function(){
+	  	 	var args =Array.prototype.slice.call(arguments);
+	  	 	for(var i=0;i<list.length;i++){
+	  	 		fn.apply(null,list[i].concat(args));
+	  	 	}
+	  	 };
 	  };
+	  function sort(a,b){
+	  	return a>b;
+	  };
+	  sort(3,4);
+	  invoke([[5, 1, 7], [3, 2, 1]], sort);
 	  invoke([[5, 1, 7], [3, 2, 1]], 'sort');
 	  //=> [[1, 5, 7], [1, 2, 3]]
+
+
+	  //方式二
+	  var map = function(list,fn,context){
+	 	var r = [];
+	 	if(isArray(list)){
+	 		for(var i=0;i<list.length;i++){
+	 			r.push(fn.call(context || null,i,list[i]));//map使用时，方便回调函数使用key,value, 参数i非必传
+	 			//fn(list[i]);
+	 		};
+	 	}else if(isObject(list)){
+	 		for(prop in list){
+	 			r.push(fn.call(context || null,i,list[prop]));
+	 		};
+	 	}else{
+	 		return 
+	 	}	
+	 	return r;
+	 }; 
+	  var  invoke = function(list, fn, args ) {
+	      var isFunction = (fn.constructor === Function) ? true : false;
+	      return map(list, function(key,val) {
+	          var func = isFunction ? fn : val[fn];
+	          return !func ? func : func.apply(val, args);
+	      })
+	  };
+	  var even = invoke([[5, 1, 7], [3, 2, 1]], 'sort');
+	  console.log(even);
+	  var even = invoke({a:[5, 1, 7], b:[3, 2, 1]}, 'sort');
+	  console.log(even);
+
+	
+
+	  //tap
+	  [2,1,33].sort();//[1, 2, 33]
+	  [2,1,33]['sort']();//[1,2,33]
+	  //方式三
+	  var invoke = function(list, methodName, arguments) {
+	  	for(var i=0;i<list.length;i++){
+	  		Array.prototype[methodName].apply(list[i],arguments);
+	  	}
+	  	console.log(list);
+	  	return list;
+	  };
+	  invoke([[5, 1, 7], [3, 2, 1]], 'sort',[9,100]);
+
+	  invoke([[5, 1, 7], [3, 2, 1]], 'sort',['bb','cc']);
+
+
+
+	  //方式四
+	 //用map 来实现invoke
+	 var _map=function(list,fn){
+	 	  for(var i=0;i<list.length;i++){
+	 	  	 fn.apply(null,list[i]);
+	 	  }
+	 };
+	 _map([[5, 1, 7], [3, 2, 1]],sort)	
+	 
+
+
+
+
+	 //sort 冒泡排序
+	 var _sort = function(list){
+
+	 };
 
 
 	  /**
@@ -792,9 +935,35 @@ var __=(function(){
 
 
 
-
+~(function(){})()
 
 	//************实用功能(Utility Functions)***********//
+	/**
+	 * 返回与传入参数相等的值. 相当于数学里的: f(x) = x
+	 * 这个函数看似无用, 但是在Underscore里被用作默认的迭代器iterator
+	 * @param  string number ..
+	 * @return Boolean
+	 */
+	var ___= window._;
+	_.noConflict = function(){
+	};
+
+
+	(function(window) {  
+	    // 保存之前数据  
+	    var _$E = window.$E;  
+	  
+	    var myplugin = {"name":"aty"};  
+	    myplugin.noConflict = function(){  
+	        window.$E = _$E;  
+	        return myplugin;  
+	    };  
+	      
+	    // 向全局对象注册$E  
+	    window.$E = myplugin;  
+	})(window);  
+
+
 	/**
 	 * 返回与传入参数相等的值. 相当于数学里的: f(x) = x
 	 * 这个函数看似无用, 但是在Underscore里被用作默认的迭代器iterator
@@ -852,7 +1021,9 @@ var __=(function(){
 var keys = function(o){
 	var r=[];
 	for(var key in o){
-		r.push(key);
+		if(o.hasOwnProperty(key)){
+			r.push(key);
+		}
 	}
 	return r;
 };
