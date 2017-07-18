@@ -693,10 +693,10 @@ var __=(function(){
 	          return !func ? func : func.apply(val, args);
 	      })
 	  };
-	  var even = invoke([[5, 1, 7], [3, 2, 1]], 'sort');
-	  console.log(even);
-	  var even = invoke({a:[5, 1, 7], b:[3, 2, 1]}, 'sort');
-	  console.log(even);
+	  var newList = invoke([[5, 1, 7], [3, 2, 1]], 'sort');
+	  console.log(newList);
+	  var newList = invoke({a:[5, 1, 7], b:[3, 2, 1]}, 'sort');
+	  console.log(newList);
 
 	
 
@@ -720,19 +720,18 @@ var __=(function(){
 	  //方式四
 	 //用map 来实现invoke
 	 var _map=function(list,fn){
-	 	  for(var i=0;i<list.length;i++){
-	 	  	 fn.apply(null,list[i]);
-	 	  }
+	 	 var r=[];
+	 	 for(var i=0;i<list.length;i++){
+	 	 	r.push( (list[i])[fn]() );
+	 	 }
+	 	 return r;
 	 };
-	 _map([[5, 1, 7], [3, 2, 1]],sort)	
-	 
 
-
-
+	 _map([[5, 1, 7], [3, 2, 1]],'sort');//[[1,5,7],[1,2,3]]
 
 	 //sort 冒泡排序
 	 var _sort = function(list){
-
+	 	//暂时不展开
 	 };
 
 
@@ -743,14 +742,33 @@ var __=(function(){
 	   * @return  []           
 	   */
 	  var pluck = function(list,propertyName){
-	  	 for(var prop in list){
-	  	 	return 
-	  	 }
+	  	var r=[];
+	  	for(var i=0;i<list.length;i++){
+	  		//for(var prop in list[i]){
+	  		if(){
+	  			r.push((list[i])[propertyName]);
+	  		}
+	  		//}
+	  	};
+	  	return r;
 	  };
 	  var stooges = [{name: 'moe', age: 40}, {name: 'larry', age: 50}, {name: 'curly', age: 60}];
 	  pluck(stooges, 'name');
 	  //=> ["moe", "larry", "curly"]
-
+	  //方式二
+	 var pluck = function(list, propertyName ) {
+	      //var _this = this;
+	      //return _this.map(list, function(val) {
+	      return map(list, function(key,val) {
+	          for(var i in val) {
+	              if(i === propertyName) {
+	                  return val[i];
+	              }
+	          }
+	      })
+	  };
+	  var stooges = [{name: 'moe', age: 40}, {name: 'larry', age: 50}, {name: 'curly', age: 60}];
+	  console.log(pluck(stooges, 'name'));
 	  /**
 	   * [返回list中的最大值。如果传递iteratee参数，iteratee将作为list中每个值的排序依据。
 	   * 如果list为空，将返回-Infinity，所以你可能需要事先用isEmpty检查 list]
@@ -1426,3 +1444,10 @@ var _slice = function(list,start,end){
 	};
 })(); 
 
+//******underscore源码部分API解读*******//
+var cb = function(value, context, argCount) {
+  if (value == null) return _.identity;
+  if (_.isFunction(value)) return optimizeCb(value, context, argCount);
+  if (_.isObject(value)) return _.matcher(value);
+  return _.property(value);
+};
