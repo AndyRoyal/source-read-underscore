@@ -1451,3 +1451,51 @@ var cb = function(value, context, argCount) {
   if (_.isObject(value)) return _.matcher(value);
   return _.property(value);
 };
+/**
+ * 将 JavaScript 模板编译为可以用于页面呈现的函数, 对于通过JSON数据源生成复杂的HTML并呈现出来的操作非常有用
+ * 模板函数可以使用 <%= … %>插入变量, 也可以用<% … %>执行任意的 JavaScript 代码。 如果您希望插入一个值, 
+ * 并让其进行HTML转义,请使用<%- … %>。 当你要给模板函数赋值的时候，可以传递一个含有与模板对应属性的data对象 。
+ *  如果您要写一个一次性的, 您可以传对象 data 作为第二个参数给模板 template 来直接呈现, 
+ *  这样页面会立即呈现而不是返回一个模板函数. 参数 settings 是一个哈希表包含任何可以覆盖的设置 _.templateSettings.
+ * @param  {}
+ * @return Boolean
+ */
+ _.template(templateString, [settings]) 
+
+ var compiled = _.template("hello: <%= name %>");
+ compiled({name: 'moe'});
+// "hello: moe"
+
+ var template = _.template("<b><%- value %></b>");
+ template({value: '<script>'});
+ //"<b>&lt;script&gt;</b>"
+
+
+//小技巧：
+//1> 链式调用的实现 chain 返回true
+//2> _上的静态方法(工具函数)，全部挂到了原型上(方便_实例使用)。
+//3> 把常用的比如Array.prototype 存到变量里
+//4> 
+
+//编码小技巧
+//1> void 0 等价于 void(0)
+//void function fn(){}   相当于函数表达式
+void function fn(a,b){
+	console.log(1);
+	return a+b;//return 不支持
+}();
+//fn(1,2); void 声明的表达式 不支持这样调
+
+//2> 函数的调用方式有三种
+//fn(a)    fn a   a.fn
+
+//3> ~ 取反
+"aaa".indexOf("a")>-1;//库中不这样写，尽量不要用到0 1
+//这样写
+if(~"aaa".indexOf("a")){console.log(111)};//111
+
+//4> 
+var noop = function(){
+	return void 0
+};
+noop();//undefined
